@@ -1,4 +1,4 @@
-FROM mcr.microsoft.com/devcontainers/python:3.11-bullseye
+FROM mcr.microsoft.com/devcontainers/base:bullseye
 
 # Persist pre-commit cache
 ENV PRE_COMMIT_HOME=/pre-commit-cache
