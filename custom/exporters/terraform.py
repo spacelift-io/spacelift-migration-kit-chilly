@@ -1,5 +1,6 @@
 import logging
 
+from python_on_whales import Container, docker
 from spacemk.exporters.terraform import TerraformExporter as BaseTerraformExporter
 
 
@@ -46,3 +47,19 @@ class TerraformExporter(BaseTerraformExporter):
         data["stacks"] = updated_stacks
 
         return data
+
+    def _start_agent_container(self, container_name: str, token: str) -> Container:
+        if docker.container.exists(container_name):
+            logging.info(f"Found a container named '{container_name}'. Using it instead of starting a new one.")
+            container = docker.container.inspect(container_name)
+
+            if not container.state.running:
+                container.start()
+
+            logging.debug(
+                f"Reusing TFC/TFE agent Docker container '{container.id}' from image '{container.config.image}'"
+            )
+
+            return container
+        else:
+            return BaseTerraformExporter._start_agent_container(self, container_name=container_name, token=token)
