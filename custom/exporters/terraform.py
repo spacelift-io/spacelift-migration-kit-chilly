@@ -29,25 +29,6 @@ class TerraformExporter(BaseTerraformExporter):
 
         return data
 
-    def _map_data(self, data: dict) -> dict:
-        data = BaseTerraformExporter._map_data(self, data)
-        data = self._materialize_terraform_latest_version(data)
-
-        return data
-
-    def _materialize_terraform_latest_version(self, data: dict) -> dict:
-        updated_stacks = []
-
-        for stack in data.get("stacks"):
-            if stack.get("terraform.version") == "latest":
-                stack["terraform.version"] = "1.5.7"
-
-            updated_stacks.append(stack)
-
-        data["stacks"] = updated_stacks
-
-        return data
-
     def _start_agent_container(self, container_name: str, token: str) -> Container:
         if docker.container.exists(container_name):
             logging.info(f"Found a container named '{container_name}'. Using it instead of starting a new one.")
