@@ -20,9 +20,11 @@ class TerraformExporter(BaseTerraformExporter):
         return data
 
     def _enrich_workspace_variable_data(self, data: dict) -> dict:
-        logging.warning("Skipping sensitive data extraction for the time being")
+        if self._config.get("skip_sensitive_variable_values_export", False):
+            logging.warning("Skipping sensitive data extraction")
+            return data
 
-        return data
+        return BaseTerraformExporter._enrich_workspace_variable_data(self, data)
 
     def _filter_data(self, data: dict) -> dict:
         data = self._drop_aws_access_keys(data)
