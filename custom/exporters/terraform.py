@@ -1,10 +1,28 @@
 import logging
+import time
 
 from python_on_whales import Container, docker
 from spacemk.exporters.terraform import TerraformExporter as BaseTerraformExporter
 
 
 class TerraformExporter(BaseTerraformExporter):
+    def _create_agent_pool(self, organization_id: str) -> str:
+        agent_pools_data = self._extract_data_from_api(
+            path=f"/organizations/{organization_id}/agent-pools",
+            properties=["attributes.name", "id"],
+        )
+
+        for agent_pool_data in agent_pools_data:
+            if agent_pool_data.get("attributes.name") == "SMK":
+                logging.info(f"Reusing existing '{agent_pool_data.get('id')}' agent pool")
+
+                return agent_pool_data.get("id")
+
+        logging.error(f"Could not find an agent pool name 'SMK' for organization '{organization_id}'")
+
+    def _delete_agent_pool(self, id_: str) -> None:
+        logging.info(f"Keep existing '{id_}' agent pool")
+
     def _drop_aws_access_keys(self, data: dict) -> dict:
         purged_workspace_variables = []
 
@@ -31,7 +49,7 @@ class TerraformExporter(BaseTerraformExporter):
 
         return data
 
-    def _start_agent_container(self, container_name: str, token: str) -> Container:
+    def _start_agent_container(self, agent_pool_id: str, container_name: str) -> Container:
         if docker.container.exists(container_name):
             logging.info(f"Found a container named '{container_name}'. Using it instead of starting a new one.")
             container = docker.container.inspect(container_name)
@@ -45,4 +63,4 @@ class TerraformExporter(BaseTerraformExporter):
 
             return container
         else:
-            return BaseTerraformExporter._start_agent_container(self, container_name=container_name, token=token)
+            logging.error(f"Could not find a local TFC/TFE agent for organization '{agent_pool_id}'")
