@@ -1,0 +1,5 @@
+{% extends "base.tf.jinja" %}
+
+{% block stack_arguments_extra %}
+{{ argument("worker_pool_id", "<WORKER POOL ID>") }}
+{% endblock %}

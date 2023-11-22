@@ -18,3 +18,8 @@ spacelift:
     api_key_endpoint: https://<ACCOUNT NAME>>.app.spacelift.io/graphql
     api_key_id:
     api_key_secret:
+
+upload_state_files:
+  bucket: tf-state-files-example-bucket
+  # Make sure to provide AWS credentials to the AWS SDK
+  # See https://boto3.amazonaws.com/v1/documentation/api/latest/guide/credentials.html
