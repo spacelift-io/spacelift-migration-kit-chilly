@@ -899,7 +899,13 @@ class TerraformExporter(BaseExporter):
                 0
             ]  # KLUDGE: There should be a way to pull single item from the API instead of a list of items
 
+<<<<<<< HEAD
             if data.get("attributes.status") in ["errored", "finished"]:
+||||||| parent of c5e51f7 (Use errored Terraform plans to extract sensitive variables)
+            if data.get("attributes.status") == "finished":
+=======
+            if data.get("attributes.status") == ["errored", "finished"]:
+>>>>>>> c5e51f7 (Use errored Terraform plans to extract sensitive variables)
                 break
             elif data.get("attributes.status") in ["canceled", "unreachable"]:  # noqa: RET508
                 logging.warning(f"Plan '{id_}' has status '{data.get('attributes.status')}'. Ignoring.")
