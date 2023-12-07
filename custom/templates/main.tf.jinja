@@ -14,6 +14,11 @@ resource "spacelift_context_attachment" "attachment" {
 }
 {% endblock %}
 
+{% block module_arguments_extra %}
+{{ argument("worker_pool_id", "<WORKER POOL ID>") }}
+{% endblock %}
+
+
 {% block footer_extra %}
 resource "spacelift_context" "infracost" {
   {{ argument("name", "Infracost", required=True) }}
