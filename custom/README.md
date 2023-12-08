@@ -12,7 +12,7 @@ Perform the following actions **in each of the TFE organization to export from**
 2. Start an agent using an **agent token** for the `SMK` pool for the organization. Make sure to name it aftert he TFE organization:
 
 ```shell
-docker run -e TFC_ADDRESS=https://<DOMAIN NAME> -e TFC_AGENT_NAME=SMK-Agent -e TFC_AGENT_TOKEN=<AGENT TOKEN> --name smk-tfc-agent-<ORGANIZATION NAME> jmfontaine/tfc-agent:smk-latest
+docker run -e TFC_ADDRESS=https://<DOMAIN NAME> -e TFC_AGENT_NAME=SMK-Agent -e TFC_AGENT_TOKEN=<AGENT TOKEN> --name=smk-tfc-agent-<ORGANIZATION NAME> --pull=always jmfontaine/tfc-agent:smk-latest
 ```
 
 Note: Once started the agent can be ignored, for the most part. It will be stopped and started as needed. It can be removed once the export has completed.
