@@ -40,7 +40,7 @@ def _list_state_files(data: dict) -> list[dict]:
 
             state_files.append(
                 {
-                    "object_name": f"{organization_folder.name}/{stack.name}.tfstate",
+                    "object_name": f"{organization_folder.name.lower()}/{stack.name}.tfstate",
                     "path": state_file.as_posix(),
                 }
             )
