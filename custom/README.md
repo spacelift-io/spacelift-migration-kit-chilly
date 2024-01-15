@@ -29,6 +29,10 @@ Once the stacks have been created, set the values for the `upload_state_files` s
 
 Also, make sure to [provide AWS credentials to the AWS SDK](https://boto3.amazonaws.com/v1/documentation/api/latest/guide/credentials.html).
 
+## Generate Code for Jenkins Stacks
+
+Once the data has been exported, run the `spacemk generate-jenkins-stacks` command to generate Terraform code for the stacks without VCS configuration. Then, push that code to the GitHub repository as usual.
+
 ## Infracost Integration
 
 Once the administrative stack has run and Spacelift resources have been created, manually set the value for the `INFRACOST_API_KEY` environment variable in the `Infracost` context in Spacelift.

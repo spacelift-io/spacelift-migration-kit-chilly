@@ -1,0 +1,73 @@
+{% extends "base.tf.jinja" %}
+
+{% block spacelift_provider_version %}1.3.1{% endblock %}
+
+{% block stacks %}
+{% for stack in stacks %}
+{% if not stack.vcs.repository %}
+resource "spacelift_stack" "{{ stack._relationships.space._migration_id }}_{{ stack._migration_id }}" {
+  {{ argument("auto_deploy", stack.auto_deploy, default=False) }}
+  {{ argument("branch", "master", required=True) }}
+  {{ argument("description", stack.description) }}
+  {{ argument("local_preview", stack.local_preview) }}
+  {{ argument("labels", stack.labels) }}
+  {{ argument("manage_state", False) }}
+  {{ argument("name", stack.name, required=True) }}
+  {{ argument("project_root", "terraform/") }}
+  {{ argument("repository", "dummy-spacectl-repo", required=True) }}
+  {{ argument("slug", stack.slug, default=stack.name) }}
+  {{ argument("terraform_version", stack.terraform.version, serialize=True) }}
+  {{ argument("space_id", "spacelift_space." ~ stack._relationships.space._migration_id ~ ".id", serialize=False) }}
+
+  github_enterprise {
+    {{ argument("namespace", "CloudAutomation") }}
+  }
+}
+
+{% if stack.has_variables_with_invalid_name %}
+resource "spacelift_mounted_file" "{{ stack._relationships.space._migration_id }}_{{ stack._migration_id }}_env_vars_with_invalid_name" {
+  {# The content will be uploaded at a later time to avoid having it in the Terraform code#}
+  {{ argument("content", 'base64encode("placeholder = \\"placeholder\\"")', serialize=False) }}
+  {{ argument("relative_path", "tf_vars_with_invalid_name.auto.tfvars") }}
+  {{ argument("stack_id", "spacelift_stack." ~ stack._relationships.space._migration_id ~ "_" ~ stack._migration_id ~ ".id", serialize=False) }}
+
+  lifecycle {
+    {{ argument("ignore_changes", "[content]", serialize=False) }}
+  }
+}
+{% endif %}
+{% endif %}
+{% endfor %}
+{% endblock %}
+
+{% block stack_variables %}
+{% for variable in stack_variables %}
+{% if not variable._relationships.stack.vcs.repository and variable.valid_name %}
+resource "spacelift_environment_variable" "{{ variable._relationships.space._migration_id }}_{{ variable._relationships.stack._migration_id }}_{{ variable._migration_id }}" {
+  {% if variable.type == "terraform" %}
+    {{ argument("name", "TF_VAR_" ~ variable.name, required=True) }}
+  {% else %}
+    {{ argument("name", variable.name, required=True) }}
+  {% endif %}
+
+  {{ argument("stack_id", "spacelift_stack." ~ variable._relationships.space._migration_id ~ "_" ~ variable._relationships.stack._migration_id ~ ".id", serialize=False) }}
+  {% if not variable.write_only %}
+    {% if variable.hcl %}
+    {{ argument("value", "jsonencode(" ~ variable.value ~ ")", serialize=False) }}
+    {% else %}
+    {{ argument("value", variable.value) }}
+    {% endif %}
+  {% endif %}
+  {{ argument("write_only", variable.write_only, default=True) }}
+
+  {% if variable.write_only %}
+  lifecycle {
+    {{ argument("ignore_changes", "[value]", serialize=False) }}
+  }
+  {% endif %}
+}
+{% endif %}
+{% endfor %}
+{% endblock %}
+
+{% block modules %}{% endblock %}
