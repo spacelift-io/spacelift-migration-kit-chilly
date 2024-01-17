@@ -31,7 +31,9 @@ Also, make sure to [provide AWS credentials to the AWS SDK](https://boto3.amazon
 
 ## Generate Code for Jenkins Stacks
 
-Once the data has been exported, run the `spacemk generate-jenkins-stacks` command to generate Terraform code for the stacks without VCS configuration. Then, push that code to the GitHub repository as usual.
+Once the data has been exported, run the `spacemk generate --stack-type=jenkins` command to generate Terraform code for the stacks without VCS configuration. Then, push that code to the GitHub repository as usual.
+
+Check `spacemk generate --help` for all `--stack-type` option values.
 
 ## Infracost Integration
 
