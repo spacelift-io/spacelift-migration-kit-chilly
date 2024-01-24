@@ -47,6 +47,22 @@ class CustomGenerator(Generator):
         for stack_variable in data.get("stack_variables"):
             for stack_to_keep in stacks_to_keep:
                 if stack_variable.get("_relationships.stack._source_id") == stack_to_keep.get("_source_id"):
+                    if not stack_variable.get("_relationships.stack.vcs.repository"):
+                        if self._stack_type in ["all", "jenkins"]:
+                            logging.debug(
+                                "Setting default values for the stack for "
+                                f"'{stack_variable.get('_relationships.space.name')}/"
+                                f"{stack_variable.get('_relationships.stack.name')}/{stack_variable.get('name')}' "
+                                "because it has no VCS configuration"
+                            )
+                            stack_variable["_relationships"]["stack"]["vcs"] = {
+                                "branch": "master",
+                                "namespace": "CloudAutomation",
+                                "project_root": "terraform/",
+                                "provider": "github_custom",
+                                "repository": "dummy-spacectl-repo",
+                            }
+
                     stack_variables_to_keep.append(stack_variable)
                     break
 
