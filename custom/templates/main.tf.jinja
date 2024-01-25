@@ -5,6 +5,12 @@
 {% block stack_arguments_extra %}
 {{ argument("labels", ["infracost"]) }}
 {{ argument("worker_pool_id", "<WORKER POOL ID>") }}
+
+{% if extra_vars.ignore_branch_changes %}
+lifecycle {
+   ignore_changes = [branch]
+}
+{% endif %}
 {% endblock %}
 
 {% block stack_extra scoped %}

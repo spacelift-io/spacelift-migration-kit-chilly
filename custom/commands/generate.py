@@ -6,7 +6,8 @@ from spacemk.generator import Generator
 
 
 class CustomGenerator(Generator):
-    def __init__(self, stack_type: str = "all"):
+    def __init__(self, ignore_branch_changes: bool = False, stack_type: str = "all"):
+        self._ignore_branch_changes = ignore_branch_changes
         self._stack_type = stack_type
         Generator.__init__(self)
 
@@ -81,6 +82,13 @@ class CustomGenerator(Generator):
     help="Type of stacks to generate",
     type=click.Choice(["all", "jenkins", "regular"], case_sensitive=False),
 )
-def generate(stack_type):
-    generator = CustomGenerator(stack_type=stack_type)
-    generator.generate()
+@click.option(
+    "--ignore-branch-changes",
+    default=False,
+    help="Adds a lifecycle argument to ignore chnages to the stack branches",
+    is_flag=True,
+    type=bool,
+)
+def generate(ignore_branch_changes: bool, stack_type: str):
+    generator = CustomGenerator(ignore_branch_changes=ignore_branch_changes, stack_type=stack_type)
+    generator.generate(extra_vars={"ignore_branch_changes": ignore_branch_changes})

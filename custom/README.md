@@ -35,6 +35,10 @@ Once the data has been exported, run the `spacemk generate --stack-type=jenkins`
 
 Check `spacemk generate --help` for all `--stack-type` option values.
 
+## Ignore Stack Branch Changes
+
+Once the data has been exported, run the `spacemk generate --ignore-branch-changes` command to generate Terraform code which ignores changes to the `branch` argument for stacks.
+
 ## Infracost Integration
 
 Once the administrative stack has run and Spacelift resources have been created, manually set the value for the `INFRACOST_API_KEY` environment variable in the `Infracost` context in Spacelift.
