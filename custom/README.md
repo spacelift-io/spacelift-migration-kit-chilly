@@ -42,3 +42,18 @@ Once the data has been exported, run the `spacemk generate --ignore-branch-chang
 ## Infracost Integration
 
 Once the administrative stack has run and Spacelift resources have been created, manually set the value for the `INFRACOST_API_KEY` environment variable in the `Infracost` context in Spacelift.
+
+## Transform Terraform Variables Into Environment Variables
+
+TFE also exposes Terraform variables as regular environment variables which results in some workspaces working fine in TFE despite incorrectly configured variables but Spacelift being stricter, the stack might complained about missing environment variables after the migration.
+
+You can list such variables in the `generator/tf_stack_variables_to_transform_env_var` section of the configuration file:
+
+```yaml
+generator:
+  tf_stack_variables_to_transform_env_var:
+    - FOO
+    - BAR
+```
+
+The type for the listed variable will be transformed on the fly before generating the `main.tf` file. Please note that the original type will be shown in the `data.json` file.

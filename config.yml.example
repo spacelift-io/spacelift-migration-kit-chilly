@@ -9,6 +9,12 @@ exporter:
     include:
       workspaces: ^example-.*$
 
+generator:
+  tf_stack_variables_to_transform_env_var:
+    - ARTIFACTORY_API_KEY
+    - ARTIFACTORY_URL
+    - AWS_DEFAULT_REGION
+
 github:
   api_token:
   endpoint: https://api.github.com

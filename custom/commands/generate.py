@@ -1,14 +1,24 @@
-import json
 import logging
 import click
+from click.decorators import pass_meta_key
 
 from spacemk.generator import Generator
 
 
 class CustomGenerator(Generator):
-    def __init__(self, ignore_branch_changes: bool = False, stack_type: str = "all"):
+    def __init__(
+        self,
+        ignore_branch_changes: bool = False,
+        stack_type: str = "all",
+        tf_stack_variables_to_transform_env_var: list = None,
+    ):
+        if tf_stack_variables_to_transform_env_var is None:
+            tf_stack_variables_to_transform_env_var = []
+
         self._ignore_branch_changes = ignore_branch_changes
         self._stack_type = stack_type
+        self._tf_stack_variables_to_transform_env_var = tf_stack_variables_to_transform_env_var
+
         Generator.__init__(self)
 
     def _process_data(self, data: dict) -> dict:
@@ -67,6 +77,18 @@ class CustomGenerator(Generator):
                     stack_variables_to_keep.append(stack_variable)
                     break
 
+        for stack_variable in stack_variables_to_keep:
+            if (
+                stack_variable.get("type") == "terraform"
+                and stack_variable.get("name") in self._tf_stack_variables_to_transform_env_var
+            ):
+                logging.debug(
+                    f"Transforming stack variable '{stack_variable.get('_relationships.space.name')}/"
+                    f"{stack_variable.get('_relationships.stack.name')}/{stack_variable.get('name')}' "
+                    "to type 'env_var'"
+                )
+                stack_variable["type"] = "env_var"
+
         data["stack_variables"] = stack_variables_to_keep
 
         logging.info("Stop data processing")
@@ -89,6 +111,11 @@ class CustomGenerator(Generator):
     is_flag=True,
     type=bool,
 )
-def generate(ignore_branch_changes: bool, stack_type: str):
-    generator = CustomGenerator(ignore_branch_changes=ignore_branch_changes, stack_type=stack_type)
+@pass_meta_key("config")
+def generate(config: dict, ignore_branch_changes: bool, stack_type: str):
+    generator = CustomGenerator(
+        ignore_branch_changes=ignore_branch_changes,
+        stack_type=stack_type,
+        tf_stack_variables_to_transform_env_var=config.get("generator.tf_stack_variables_to_transform_env_var", []),
+    )
     generator.generate(extra_vars={"ignore_branch_changes": ignore_branch_changes})
