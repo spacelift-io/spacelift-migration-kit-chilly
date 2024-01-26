@@ -8,6 +8,7 @@ from benedict import benedict
 from botocore.exceptions import ClientError
 from pathlib import Path
 from spacemk import get_tmp_folder, get_tmp_subfolder
+from slugify import slugify
 
 
 def _find_stack(data: dict, workspace_id: str) -> dict | None:
@@ -37,10 +38,11 @@ def _list_state_files(data: dict) -> list[dict]:
             stack = _find_stack(data=data, workspace_id=workspace_id)
             if not stack:
                 logging.warning(f"Could not find stack for workspace id '{workspace_id}'. Ignoring.")
+                continue
 
             state_files.append(
                 {
-                    "object_name": f"{organization_folder.name.lower()}/{stack.name}.tfstate",
+                    "object_name": f"{organization_folder.name.lower()}/{slugify(stack.name)}.tfstate",
                     "path": state_file.as_posix(),
                 }
             )
