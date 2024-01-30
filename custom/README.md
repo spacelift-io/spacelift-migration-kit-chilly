@@ -57,3 +57,14 @@ generator:
 ```
 
 The type for the listed variable will be transformed on the fly before generating the `main.tf` file. Please note that the original type will be shown in the `data.json` file.
+
+## Make Old Tfvars Files Editable
+
+Based on feedback from the ICE team, the handling of workspace variables with invalid names changed during the migration which means `tf_vars_with_invalid_name.auto.tfvars` mounted files created before the behavior change are marked as write-only which prevents their content from being editable. It can only be replaced which is not practical at this time.
+
+The `spacemk make-old-tfvars-editable` command marks `tf_vars_with_invalid_name.auto.tfvars` mounted files created before the behavior change as not write-only.
+
+Due to the nature of the command, 2 safeguards have been put in place and are enabled by default:
+
+- The `--dry-run` option: When set to `true`, the command will output what changes it would have made but won't made them. Defaults to `true`.
+- The `limit` option: The number of `tf_vars_with_invalid_name.auto.tfvars` mounted files changed by the execution of the command is limited to the value for this option. Defaults to 1. This option is ignored when `--dry-run` is set to `true`.
