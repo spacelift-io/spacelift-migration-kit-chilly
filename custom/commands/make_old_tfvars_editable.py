@@ -1,11 +1,12 @@
 import logging
+import re
 import click
 from click.decorators import pass_meta_key
 from spacemk.spacelift import Spacelift
 
 
 class CustomSpacelift(Spacelift):
-    def get_stack_ids(self) -> list[dict]:
+    def get_stack_ids(self, regex: str) -> list[dict]:
         def get_paginated_results(cursor: str = None):
             operation = """
             query SearchStacks($input: SearchInput!) {
@@ -31,11 +32,18 @@ class CustomSpacelift(Spacelift):
             return self._call_api(operation=operation, variables=variables)
 
         stack_ids = []
+        pattern = re.compile(regex)
 
         cursor = None
         while True:
             results = get_paginated_results(cursor=cursor)
-            stack_ids.extend([edge.get("node.id") for edge in results.get("data.searchStacks.edges")])
+
+            for edge in results.get("data.searchStacks.edges"):
+                if pattern.match(edge.get("node.id")):
+                    stack_ids.append(edge.get("node.id"))
+                else:
+                    logging.debug(f"Stack '{edge.get('node.id')}' does not match the regex '{regex}'. Ignoring.")
+
             if results.get("data.searchStacks.pageInfo.hasNextPage"):
                 cursor = results.get("data.searchStacks.pageInfo.endCursor")
             else:
@@ -98,19 +106,19 @@ class CustomSpacelift(Spacelift):
             logging.info(f"Did not find both tfvars files for stack '{stack_id}'. Ignoring.")
             return None
 
-    def make_old_tfvars_editable(self, dry_run: bool, limit: int) -> None:
+    def make_old_tfvars_editable(self, dry_run: bool, limit: int, regex: str) -> None:
         logging.info("Making old tfvars files editable")
 
         if dry_run:
             logging.warning("This is a dry run. No changes will be made and the limit will be ignored.")
 
         counter = 0
-        for stack_id in self.get_stack_ids():
+        for stack_id in self.get_stack_ids(regex=regex):
             logging.info(f"Processing stack '{stack_id}'")
             tfvars_file = self.get_tfvars_file(stack_id=stack_id)
             if tfvars_file:
                 if dry_run:
-                    logging.warning(
+                    logging.info(
                         f"Would have updated visibility of '{tfvars_file.get('id')}' for stack '{stack_id}' "
                         "if dry run was not enabled"
                     )
@@ -119,11 +127,14 @@ class CustomSpacelift(Spacelift):
                     counter += 1
 
             if not dry_run and counter >= limit:
-                logging.warning(f"Reached the limit of {limit}. Stopping.")
+                logging.info(f"Reached the limit of {limit}. Stopping.")
                 break
 
+        if dry_run:
+            logging.warning("This was a dry run. No changes were made.")
+
     def update_mounted_file_visibility(self, mounted_file: dict, stack_id: str) -> None:
-        logging.warning(f"Updating visibility of '{mounted_file.get('id')}' for stack '{stack_id}' to not write-only")
+        logging.info(f"Updating visibility of '{mounted_file.get('id')}' for stack '{stack_id}' to not write-only")
         self._set_mounted_file_content(
             content=mounted_file.get("value"),
             filename=mounted_file.get("id"),
@@ -148,6 +159,13 @@ class CustomSpacelift(Spacelift):
     show_default=True,
     type=int,
 )
-def make_old_tfvars_editable(config, dry_run: bool, limit: int):
+@click.option(
+    "--regex",
+    default="^.*$",
+    help="Regular expression to match stack IDs",
+    show_default=True,
+    type=str,
+)
+def make_old_tfvars_editable(config, dry_run: bool, limit: int, regex: str):
     spacelift = CustomSpacelift(config.get("spacelift"))
-    spacelift.make_old_tfvars_editable(dry_run=dry_run, limit=limit)
+    spacelift.make_old_tfvars_editable(dry_run=dry_run, limit=limit, regex=regex)
